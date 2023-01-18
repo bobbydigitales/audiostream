@@ -38,8 +38,11 @@
         })
 
         // Render all files into to the page
+        let autoplay = true;
         torrent.files.forEach(function (file) {
-          file.appendTo('.log')
+
+          file.appendTo('.log', {autoplay:autoplay})
+          autoplay = false;
           log('(Blob URLs only work if the file is loaded from a server. "http//localhost" works. "file://" does not.)')
           file.getBlobURL(function (err, url) {
             if (err) return log(err.message)
