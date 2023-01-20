@@ -1,16 +1,26 @@
 <!doctype html>
 <html>
   <body>
-    <h1>Download files using the WebTorrent protocol (BitTorrent over WebRTC).</h1>
+    <style>
+        body {
+            background-color: rgb(0,0,0);
+            color: rgb(179, 179, 179);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+    <h1>Audiostream: Steaming audio via Bittorrent over WebRTC</h1>
+    <h2>Loading example album: bobbyd_ep1</h2>
 
+    <div id="progress" ></div>
+    <div id="content" class="content"></div>
     <h2>Log</h2>
-    <div class="log"></div>
+    <div id="log"></div>
 
     <!-- Include the latest version of WebTorrent -->
     <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
 
     <script>
-        const torrentId = "magnet:?xt=urn:btih:8ea6716a870e593aa405068904cc44c0d9c1f3cd&dn=randomberg_ep1&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&xs=https%3A%2F%2Fbobbydigitales.github.io%2Faudiostream_content%2Frandomberg_ep1.torrent&ws=https%3A%2F%2Fbobbydigitales.github.io%2Faudiostream_content%2F";
+        const torrentId = "magnet:?xt=urn:btih:aac1a937501dbf6b2a8a1b4dc6650571b1f2655d&dn=bobbyd_ep1&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&xs=https%3A%2F%2Fbobbydigitales.github.io%2Faudiostream_content%2Fbobbyd_ep1.torrent&ws=https%3A%2F%2Fbobbydigitales.github.io%2Faudiostream_content%2F";
         const client = new WebTorrent()
 
       client.on('error', function (err) {
@@ -29,33 +39,47 @@
 
         // Print out progress every 5 seconds
         const interval = setInterval(function () {
-          log('Progress: ' + (torrent.progress * 100).toFixed(1) + '%')
-        }, 5000)
+          log(`${torrent.name} - Progress: ${(torrent.progress * 100).toFixed(1)}%`, "#progress", true)
+        }, 100)
 
         torrent.on('done', function () {
-          log('Progress: 100%')
-          clearInterval(interval)
+          log(`${torrent.name} -  Progress: 100%`, "#progress", true)
+          clearInterval(interval);
         })
 
         // Render all files into to the page
-        let autoplay = true;
+        let autoplay = true;    
         torrent.files.forEach(function (file) {
-
-          file.appendTo('.log', {autoplay:autoplay})
+            
+            log(file.name, ".content")
+          file.appendTo('.content', {autoplay:autoplay})
           autoplay = false;
-          log('(Blob URLs only work if the file is loaded from a server. "http//localhost" works. "file://" does not.)')
+        //   log('(Blob URLs only work if the file is loaded from a server. "http//localhost" works. "file://" does not.)')
           file.getBlobURL(function (err, url) {
             if (err) return log(err.message)
-            log('File done.')
+            log(`File done: ${file.name}`)
             log('<a href="' + url + '">Download full file: ' + file.name + '</a>')
           })
         })
       }
 
-      function log (str) {
+      function log (str, id, replace) {
+        if (!id) { id = '#log'}
+
+        let element = document.querySelector(id);
+
+        if (!element) {
+            throw new Error();
+        }
+
+        if (replace) {
+            element.innerHTML = str;
+            return;
+        }
+
         const p = document.createElement('p')
         p.innerHTML = str
-        document.querySelector('.log').appendChild(p)
+        element.appendChild(p);
       }
     </script>
   </body>
