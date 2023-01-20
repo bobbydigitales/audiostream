@@ -7,14 +7,30 @@
             color: rgb(179, 179, 179);
             font-family: Arial, Helvetica, sans-serif;
         }
+
+        #paypal-button-container {
+            width: 200px;
+        }
     </style>
     <h1>Audiostream: Steaming audio via Bittorrent over WebRTC</h1>
-    <h2>Loading example album: bobbyd_ep1</h2>
-
+    <h2>Loading example album:</h2>
+    <div id="album_title"></div>
+    <div id="album_art"></div>
+    <div id="paypal-button-container"></div>
     <div id="progress" ></div>
     <div id="content" class="content"></div>
     <h2>Log</h2>
     <div id="log"></div>
+
+
+    <!-- Include the PayPal JavaScript SDK. Replace `YOUR_CLIENT_ID` with your client ID.-->
+    <!-- Note that `enable-funding=venmo` is added as a query parameter -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AVxHZmVdM8IpJDmXmkatUZq72gSxzwxgNL8RTf-AqcBvBT3XMO4XQLVSvRHMDtoQWfhurI3sfbPJ_cJ6&enable-funding=venmo"></script>
+
+    <script>
+    // Render the Venmo button into #paypal-button-container
+    paypal.Buttons().render('#paypal-button-container')
+    </script>
 
     <!-- Include the latest version of WebTorrent -->
     <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
@@ -30,6 +46,7 @@
       client.add(torrentId, onTorrent)
     
       function onTorrent (torrent) {
+        log(`<h2>${torrent.name}</h2>`, '#album_title');
         log('Got torrent metadata!')
         log(
           'Torrent info hash: ' + torrent.infoHash + ' ' +
@@ -52,14 +69,26 @@
         torrent.files.forEach(function (file) {
             
             log(file.name, ".content")
+        if (file.name.includes('folder.jpg')) {
+            file.getBlobURL(function (err, url) {
+            if (err) return log(err.message)
+            let albumArtElement = document.getElementById('album_art');
+            let image = document.createElement('img');
+            image.src = url;
+            albumArtElement.appendChild(image);
+            // log(`File done: ${file.name}`)
+            // log('<a href="' + url + '">Download full file: ' + file.name + '</a>')
+          })
+          return;
+        }
           file.appendTo('.content', {autoplay:autoplay})
           autoplay = false;
         //   log('(Blob URLs only work if the file is loaded from a server. "http//localhost" works. "file://" does not.)')
-          file.getBlobURL(function (err, url) {
-            if (err) return log(err.message)
-            log(`File done: ${file.name}`)
-            log('<a href="' + url + '">Download full file: ' + file.name + '</a>')
-          })
+        //   file.getBlobURL(function (err, url) {
+        //     if (err) return log(err.message)
+        //     log(`File done: ${file.name}`)
+        //     log('<a href="' + url + '">Download full file: ' + file.name + '</a>')
+        //   })
         })
       }
 
